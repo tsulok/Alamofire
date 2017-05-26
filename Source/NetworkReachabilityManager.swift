@@ -191,16 +191,17 @@ public class NetworkReachabilityManager {
         if !flags.contains(.connectionRequired) { networkStatus = .reachable(.ethernetOrWiFi) }
 
         if flags.contains(.connectionOnDemand) || flags.contains(.connectionOnTraffic) {
+            // Check for transient connection flag (e.g. VPN)
             if flags.contains(.transientConnection) {
                 networkStatus = .reachable(.connectionNeeded)
             } else if !flags.contains(.interventionRequired) {
                 networkStatus = .reachable(.ethernetOrWiFi)
             }
+        } else {
+            #if os(iOS)
+                if flags.contains(.isWWAN) { networkStatus = .reachable(.wwan) }
+            #endif
         }
-
-        #if os(iOS)
-            if flags.contains(.isWWAN) { networkStatus = .reachable(.wwan) }
-        #endif
 
         return networkStatus
     }
