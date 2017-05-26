@@ -47,11 +47,13 @@ public class NetworkReachabilityManager {
 
     /// Defines the various connection types detected by reachability flags.
     ///
-    /// - ethernetOrWiFi: The connection type is either over Ethernet or WiFi.
-    /// - wwan:           The connection type is a WWAN connection.
+    /// - ethernetOrWiFi:   The connection type is either over Ethernet or WiFi.
+    /// - wwan:             The connection type is a WWAN connection.
+    /// - connectionNeeded: The connection type is connecting to VPN
     public enum ConnectionType {
         case ethernetOrWiFi
         case wwan
+        case connectionNeeded
     }
 
     /// A closure executed when the network reachability status changes. The closure takes a single argument: the
@@ -189,7 +191,11 @@ public class NetworkReachabilityManager {
         if !flags.contains(.connectionRequired) { networkStatus = .reachable(.ethernetOrWiFi) }
 
         if flags.contains(.connectionOnDemand) || flags.contains(.connectionOnTraffic) {
-            if !flags.contains(.interventionRequired) { networkStatus = .reachable(.ethernetOrWiFi) }
+            if flags.contains(.transientConnection) {
+                networkStatus = .reachable(.connectionNeeded)
+            } else if !flags.contains(.interventionRequired) {
+                networkStatus = .reachable(.ethernetOrWiFi)
+            }
         }
 
         #if os(iOS)
